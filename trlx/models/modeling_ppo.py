@@ -648,13 +648,17 @@ class GPTModelBranch(ModelBranch):
             outputs = block(hidden_states, **kwargs)
 
             hidden_states = outputs[0]
-            if use_cache is True:
+            if use_cache is True and len(outputs) > 1:
                 presents = presents + (outputs[1],)
 
             if output_attentions:
-                all_self_attentions = all_self_attentions + (outputs[2 if use_cache else 1],)
+                attention_idx = 2 if use_cache else 1
+                if len(outputs) > attention_idx:
+                    all_self_attentions = all_self_attentions + (outputs[attention_idx],)
                 if self.config.add_cross_attention:
-                    all_cross_attentions = all_cross_attentions + (outputs[3 if use_cache else 2],)
+                    cross_attention_idx = 3 if use_cache else 2
+                    if len(outputs) > cross_attention_idx:
+                        all_cross_attentions = all_cross_attentions + (outputs[cross_attention_idx],)
 
             if self.model_parallel:
                 for k, v in self.device_map.items():

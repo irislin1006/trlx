@@ -309,6 +309,8 @@ class AccelerateRLTrainer(BaseRLTrainer):
     def save(self, directory: Optional[str] = None, **kwargs):
         """Creates a checkpoint for the optimizer, scheduler and the model"""
         dst_dir = directory or self.config.train.checkpoint_dir
+        # Disable safe serialization to avoid shared tensor issues
+        kwargs.setdefault('safe_serialization', False)
         self.accelerator.save_state(dst_dir, **kwargs)
 
         if self.config.model.peft_config is not None and self.accelerator.is_main_process:
